@@ -1,1 +1,79 @@
 @import "tailwindcss";
+
+/* Add these styles below the @import */
+body {
+  @apply bg-gradient-to-br from-teal-400 to-blue-600 min-h-screen flex items-center justify-center p-4 font-sans;
+}
+
+#root {
+  @apply w-full; /* Make sure the root element takes full width */
+}
+
+/* Base Card Style */
+.card {
+  @apply bg-white rounded-xl shadow-lg p-6;
+}
+
+/* Input Field Style */
+.input-field {
+  @apply block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm;
+}
+
+/* Base Button Styles */
+.btn {
+  @apply inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-base font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors duration-150;
+}
+
+.btn-primary {
+  @apply text-white bg-teal-600 hover:bg-teal-700 focus:ring-teal-500;
+}
+
+.btn-secondary {
+  @apply text-teal-700 bg-teal-100 hover:bg-teal-200 focus:ring-teal-500;
+}
+
+.btn-danger {
+  @apply text-white bg-red-600 hover:bg-red-700 focus:ring-red-500;
+}
+
+.btn-ghost {
+   @apply text-gray-700 bg-transparent hover:bg-gray-100 focus:ring-gray-500 border-gray-300;
+}
+
+/* Modal Styles */
+.modal-backdrop {
+  @apply fixed inset-0 bg-black backdrop-blur-sm transition-opacity duration-300;
+  /* Added background color, opacity, and blur */
+}
+
+.modal-content {
+  @apply relative max-h-[90vh] overflow-y-auto;
+  /* Added relative positioning to appear above backdrop */
+}
+
+/* Auth Tab Styles */
+.auth-tab {
+   @apply w-1/2 py-3 text-center text-gray-600 font-medium border-b-2 border-transparent hover:border-gray-300 hover:text-gray-800 transition-colors duration-150;
+}
+.auth-tab-active {
+   @apply border-teal-500 text-teal-600;
+}
+.auth-tab-inactive {
+  /* No specific styles needed, uses base .auth-tab styles */
+}
+
+/* Feedback Message Styles */
+.feedback {
+   @apply text-lg font-semibold mb-4 p-3 rounded-md;
+}
+.feedback-correct {
+  @apply bg-green-100 text-green-800;
+}
+.feedback-incorrect {
+   @apply bg-red-100 text-red-800;
+}
+
+/* Custom Font (Optional but nice) */
+.font-display {
+  font-family: 'Poppins', sans-serif; /* Example: Add Poppins font via index.html if you like */
+}
