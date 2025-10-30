@@ -19,7 +19,7 @@ const GameScreen = ({ user, userData, allUsers, onLogout, onProfileUpdate, onUpd
     }
 
     return (
-        <div className="w-full max-w-7xl mx-auto">
+        <div className="w-full mx-auto">
             <NavBar
                 userData={userData}
                 onLogout={onLogout}

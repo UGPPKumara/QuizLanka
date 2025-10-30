@@ -2,7 +2,7 @@
 
 /* Add these styles below the @import */
 body {
-  @apply bg-gradient-to-br from-teal-400 to-blue-600 min-h-screen flex items-center justify-center p-4 font-sans;
+  @apply bg-gradient-to-br from-teal-400 to-blue-600 min-h-screen p-4 font-sans;
 }
 
 #root {

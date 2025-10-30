@@ -25,9 +25,9 @@ export default function App() {
     // Loading State
     if (!isAuthReady) {
         return (
-            <div className="flex items-center justify-center min-h-screen">
-                <h1 className="font-display text-5xl text-white">Loading...</h1>
-            </div>
+<div className="flex items-center justify-center min-h-screen">
+    <h1 className="font-display text-5xl text-white">Loading...</h1>
+</div>
         );
     }
     
