@@ -6,7 +6,7 @@ import { gameData } from '../data/gameData';
 
 /**
  * GameArea: The core quiz component
- * (Copied from src/App.jsx)
+ * (Logic MODIFIED for bilingual answers, UI text kept in ENGLISH)
  */
 const GameArea = ({ userData, onUpdateStats }) => {
     // Game State
@@ -40,11 +40,14 @@ const GameArea = ({ userData, onUpdateStats }) => {
         
     }, [userData.currentLevel, userData.score]);
     
+    // --- MODIFIED FUNCTION ---
     const handleTextSubmit = () => {
         const userAnswer = textAnswer.trim().toLowerCase();
-        const correctAnswer = currentQuestion.answer.toLowerCase();
+        
+        // NEW: Normalize all possible correct answers from the array
+        const correctAnswers = currentQuestion.answer.map(ans => ans.toLowerCase());
 
-        if (userAnswer === correctAnswer) {
+        if (correctAnswers.includes(userAnswer)) { // NEW: Check if user answer is in the array
             handleCorrectAnswer(true); // true = first try
         } else {
             setGameState('mc-input');
@@ -52,9 +55,16 @@ const GameArea = ({ userData, onUpdateStats }) => {
         setTextAnswer('');
     };
 
-    const handleMcSubmit = (selectedOption) => {
-        const correctAnswer = currentQuestion.answer;
-        if (selectedOption === correctAnswer) {
+    // --- MODIFIED FUNCTION ---
+    const handleMcSubmit = (selectedOptionObject) => {
+        // selectedOptionObject is { en: "...", si: "..." }
+        const correctAnswers = currentQuestion.answer.map(ans => ans.toLowerCase());
+        
+        // NEW: Check if either the English or Sinhala version is in the correct answer array
+        const isCorrect = correctAnswers.includes(selectedOptionObject.en.toLowerCase()) || 
+                          correctAnswers.includes(selectedOptionObject.si.toLowerCase());
+
+        if (isCorrect) {
             handleCorrectAnswer(false); // false = not first try
         } else {
             handleIncorrectAnswer();
@@ -65,7 +75,7 @@ const GameArea = ({ userData, onUpdateStats }) => {
         const pointsGained = isFirstTry ? 10 : 5;
         
         setFeedback({
-            message: `Correct! +${pointsGained} Points!`,
+            message: `Correct! +${pointsGained} Points!`, // Kept in English
             points: pointsGained,
             correct: true,
             image: currentQuestion.image
@@ -77,11 +87,11 @@ const GameArea = ({ userData, onUpdateStats }) => {
 
     const handleIncorrectAnswer = () => {
         const pointsLost = userData.score - scoreAtLevelStart;
-        let message = "Incorrect. Let's start this level again.";
+        let message = "Incorrect. Let's start this level again."; // Kept in English
         
         if (pointsLost > 0) {
             onUpdateStats({ score: scoreAtLevelStart });
-            message = `Incorrect! You lose ${pointsLost} points. Let's start this level again.`;
+            message = `Incorrect! You lose ${pointsLost} points. Let's start this level again.`; // Kept in English
         }
         
         setFeedback({
@@ -107,17 +117,17 @@ const GameArea = ({ userData, onUpdateStats }) => {
             if (nextLevel > gameData.length) {
                 // Game Complete!
                 setModalContent({
-                    title: "You're a Genius!",
-                    message: "You have completed all the levels! Great job!",
-                    buttonText: "Play Again"
+                    title: "You're a Genius!", // Kept in English
+                    message: "You have completed all the levels! Great job!", // Kept in English
+                    buttonText: "Play Again" // Kept in English
                 });
                 nextLevel = 1; // Reset to level 1
             } else {
                 // Next Level
                 setModalContent({
-                    title: "Level Complete!",
-                    message: `Get ready for ${gameData[nextLevel - 1].levelName}!`,
-                    buttonText: "Start Level"
+                    title: "Level Complete!", // Kept in English
+                    message: `Get ready for ${gameData[nextLevel - 1].levelName}!`, // Uses bilingual level name
+                    buttonText: "Start Level" // Kept in English
                 });
             }
             setIsLevelModalOpen(true);
@@ -133,6 +143,7 @@ const GameArea = ({ userData, onUpdateStats }) => {
         setIsLevelModalOpen(false);
     };
     
+    // --- MODIFIED: Shuffle options objects ---
     const shuffledOptions = useMemo(() => {
         return [...currentQuestion.options].sort(() => Math.random() - 0.5);
     }, [currentQuestion]);
@@ -157,7 +168,7 @@ const GameArea = ({ userData, onUpdateStats }) => {
                 </div>
             </div>
 
-            {/* Question Text */}
+            {/* Question Text (Bilingual) */}
             <p className="text-xl md:text-2xl font-semibold text-gray-800 mb-6 min-h-[60px]">
                 {currentQuestion.question}
             </p>
@@ -168,25 +179,26 @@ const GameArea = ({ userData, onUpdateStats }) => {
                     <input 
                         type="text" 
                         className="input-field text-lg" 
-                        placeholder="Type your answer here..."
+                        placeholder="Type your answer here..." // Kept in English
                         value={textAnswer}
                         onChange={(e) => setTextAnswer(e.target.value)}
                         onKeyUp={(e) => e.key === 'Enter' && handleTextSubmit()}
                     />
-                    <button onClick={handleTextSubmit} className="btn btn-primary w-full text-lg py-3">Submit Answer</button>
+                    <button onClick={handleTextSubmit} className="btn btn-primary w-full text-lg py-3">Submit Answer</button> {/* Kept in English */}
                 </div>
             )}
 
             {/* 2. Multiple Choice Container */}
             {gameState === 'mc-input' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* --- MODIFIED: Display bilingual options --- */}
                     {shuffledOptions.map((option) => (
                         <button 
-                            key={option}
-                            onClick={() => handleMcSubmit(option)}
+                            key={option.en} // Use en for key
+                            onClick={() => handleMcSubmit(option)} // Pass the whole object
                             className="btn btn-secondary text-lg py-3"
                         >
-                            {option}
+                            {option.en} | {option.si}
                         </button>
                     ))}
                 </div>
@@ -206,7 +218,7 @@ const GameArea = ({ userData, onUpdateStats }) => {
                     {feedback.correct && (
                         <button onClick={handleNextQuestion} className="btn btn-primary text-lg py-3">
                             Next Question
-                        </button>
+                        </button> /* Kept in English */
                     )}
                 </div>
             )}
