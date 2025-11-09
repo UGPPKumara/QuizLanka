@@ -1,6 +1,13 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth"; // <-- Removed getDoc
-import { getFirestore, setLogLevel, doc, setDoc, getDoc } from "firebase/firestore"; // <-- Added getDoc HERE
+import { 
+    getAuth, 
+    GoogleAuthProvider, 
+    signInWithPopup, // We'll leave this, but...
+    signInWithRedirect, // <-- ADD THIS
+    getRedirectResult   // <-- ADD THIS
+} from "firebase/auth";
+import { getFirestore, setLogLevel, doc, setDoc, getDoc } from "firebase/firestore";
+
 // Your Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyCEBAl0wIQKAyEx3muIpoCAS9D595hu_00",
@@ -28,4 +35,15 @@ try {
 }
 
 // Export the services and helpers
-export { app, auth, db, GoogleAuthProvider, signInWithPopup, getDoc, doc, setDoc };
+export { 
+    app, 
+    auth, 
+    db, 
+    GoogleAuthProvider, 
+    signInWithPopup, // Keep for now
+    signInWithRedirect, // <-- EXPORT THIS
+    getRedirectResult,  // <-- EXPORT THIS
+    getDoc, 
+    doc, 
+    setDoc 
+};

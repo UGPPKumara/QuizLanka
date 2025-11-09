@@ -6,7 +6,8 @@ import React from 'react';
  */
 const NavBar = ({ userData, onLogout, onEditProfile }) => {
     const firstLetter = userData.displayName ? userData.displayName[0].toUpperCase() : 'A';
-    const avatarUrl = `https://placehold.co/100x100/2193b0/FFFFFF?text=${firstLetter}`;
+    // UPDATED: New placeholder color
+    const avatarUrl = `https://placehold.co/100x100/0ACBDB/FFFFFF?text=${firstLetter}`;
     
     return (
         <nav className="card w-full flex flex-col md:flex-row items-center justify-between gap-4 mb-6 p-4">
@@ -14,7 +15,8 @@ const NavBar = ({ userData, onLogout, onEditProfile }) => {
                 <img src={avatarUrl} alt="Avatar" className="w-16 h-16 rounded-full border-4 border-white shadow-md" />
                 <div>
                     <h2 className="text-2xl font-bold text-gray-800 leading-tight">{userData.displayName}</h2>
-                    <p className="text-teal-600 font-semibold">
+                    {/* UPDATED: Used .text-primary class */}
+                    <p className="text-primary font-semibold">
                         <span>Score: {userData.score}</span> | <span>Level: {userData.currentLevel}</span>
                     </p>
                 </div>

@@ -12,7 +12,8 @@ const MemberList = ({ allUsers, currentUserId }) => {
 
     return (
         <div className="card flex-1">
-            <h2 className="font-display text-3xl text-teal-600 mb-4">Live Competition</h2>
+            {/* UPDATED: Used .text-primary class */}
+            <h2 className="font-display text-3xl text-primary mb-4">Live Competition</h2>
             <div className="space-y-3 max-h-96 lg:max-h-[500px] overflow-y-auto pr-2">
                 {sortedMembers.length === 0 && <p className="text-gray-500">No members yet...</p>}
                 {sortedMembers.map((member, index) => (
@@ -27,7 +28,8 @@ const MemberList = ({ allUsers, currentUserId }) => {
                                 <p className="text-xs text-gray-500">Level {member.currentLevel}</p>
                             </div>
                         </div>
-                        <span className="font-bold text-teal-600">{member.score}</span>
+                        {/* UPDATED: Used .text-primary class */}
+                        <span className="font-bold text-primary">{member.score}</span>
                     </div>
                 ))}
             </div>

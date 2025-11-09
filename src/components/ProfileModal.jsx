@@ -26,7 +26,8 @@ const ProfileModal = ({ currentName, onClose, onSave }) => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="modal-backdrop" onClick={onClose}></div>
             <div className="card modal-content text-center max-w-md w-full z-10">
-                <h2 className="font-display text-4xl text-teal-600 mb-6">Edit Your Profile</h2>
+                {/* UPDATED: Used .text-primary class */}
+                <h2 className="font-display text-4xl text-primary mb-6">Edit Your Profile</h2>
                 <form onSubmit={handleSave} className="space-y-4">
                     <div>
                         <label htmlFor="profile-name-input" className="block text-sm font-medium text-gray-700 text-left mb-1">Display Name</label>

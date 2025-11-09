@@ -3,20 +3,20 @@ import Logo from '../assets/Logo.png';
 
 /**
  * AuthScreen: Login and Register Forms
- * (Copied from src/App.jsx and modified for Google Sign-In)
+ * (RE-ADDED Google Sign-In)
  */
-const AuthScreen = ({ onRegister, onLogin, onGoogleSignIn, error }) => {
+const AuthScreen = ({ onRegister, onLogin, onGoogleSignIn, error }) => { // <-- RE-ADDED onGoogleSignIn
     const [isLoginView, setIsLoginView] = useState(true);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [displayName, setDisplayName] = useState('');
+    // DisplayName is removed, as requested
 
     const handleSubmit = (e) => {
         e.preventDefault();
         if (isLoginView) {
             onLogin(email, password);
         } else {
-            onRegister(displayName, email, password);
+            onRegister(email, password); // Register with just email/pass
         }
     };
 
@@ -41,18 +41,8 @@ const AuthScreen = ({ onRegister, onLogin, onGoogleSignIn, error }) => {
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    {!isLoginView && (
-                        <div>
-                            <label htmlFor="register-name" className="block text-sm font-medium text-gray-700 text-left mb-1">Display Name</label>
-                            <input 
-                                type="text" id="register-name" 
-                                placeholder="e.g., Nimal" 
-                                className="input-field" required 
-                                value={displayName}
-                                onChange={(e) => setDisplayName(e.target.value)}
-                            />
-                        </div>
-                    )}
+                    {/* Display Name field is removed from registration */}
+                    
                     <div>
                         <label htmlFor="email" className="block text-sm font-medium text-gray-700 text-left mb-1">Email</label>
                         <input 
@@ -78,7 +68,7 @@ const AuthScreen = ({ onRegister, onLogin, onGoogleSignIn, error }) => {
                         {isLoginView ? 'Login' : 'Create Account'}
                     </button>
 
-                    {/* --- ADDED GOOGLE BUTTON --- */}
+                    {/* --- RE-ADDED GOOGLE BUTTON --- */}
                     <div className="relative my-6">
                         <div className="absolute inset-0 flex items-center">
                             <span className="w-full border-t border-gray-300"></span>

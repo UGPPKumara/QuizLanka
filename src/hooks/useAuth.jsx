@@ -18,16 +18,16 @@ import {
     auth, 
     db, 
     usersCollectionPath,
-    GoogleAuthProvider,  // <-- New
-    signInWithPopup,     // <-- New
-    getDoc,              // <-- New
-    doc,                 // <-- New
-    setDoc               // <-- New
+    GoogleAuthProvider,
+    getDoc,
+    doc,
+    setDoc,
+    signInWithRedirect, // <-- NEW
+    getRedirectResult   // <-- NEW
 } from '../firebase/config';
 
 
 // --- 2. CUSTOM AUTH HOOK ---
-// (Copied from src/App.jsx and modified)
 export default function useAuth() {
     const [user, setUser] = useState(null);
     const [userData, setUserData] = useState(null);
@@ -35,72 +35,94 @@ export default function useAuth() {
     const [isAuthReady, setIsAuthReady] = useState(false);
     const [authError, setAuthError] = useState("");
 
+    // This useEffect hook runs when the app first loads
     useEffect(() => {
         let userDocUnsubscribe = null;
         let memberListUnsubscribe = null;
 
+        // --- NEW: Handle the Google Redirect ---
+        // We do this *before* setting the main listener
+        // This 'try/catch' checks if the user is coming BACK from Google
         (async () => {
             try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
+                const result = await getRedirectResult(auth);
+                if (result) {
+                    // This means the user just logged in via redirect
+                    const user = result.user;
+                    // Check if they are a new user
+                    const userDocRef = doc(db, usersCollectionPath, user.uid);
+                    const docSnap = await getDoc(userDocRef);
+
+                    if (!docSnap.exists()) {
+                        // This is a new user, create their doc
+                        await setDoc(userDocRef, {
+                            userId: user.uid,
+                            email: user.email,
+                            profileComplete: false, // Send to profile creation
+                            score: 0,
+                            currentLevel: 1
+                        });
+                    }
+                    // If they exist, the onAuthStateChanged listener below will handle it
                 }
             } catch (error) {
-                console.error("Error during initial sign-in:", error);
-                setAuthError("Error signing in. Please try again.");
-            } finally {
-                setIsAuthReady(true);
+                console.error("Google Redirect Error:", error);
+                setAuthError(error.message);
             }
-        })();
-        
-        const authUnsubscribe = onAuthStateChanged(auth, (user) => {
-            if (userDocUnsubscribe) userDocUnsubscribe();
-            if (memberListUnsubscribe) memberListUnsubscribe();
-            
-            if (user) {
-                setUser(user);
+            // --- End of new redirect logic ---
+
+
+            // This is the main listener for auth changes
+            const authUnsubscribe = onAuthStateChanged(auth, (user) => {
+                if (userDocUnsubscribe) userDocUnsubscribe();
+                if (memberListUnsubscribe) memberListUnsubscribe();
                 
-                const userDocRef = doc(db, usersCollectionPath, user.uid);
-                userDocUnsubscribe = onSnapshot(userDocRef, (docSnap) => {
-                    if (docSnap.exists()) {
-                        setUserData(docSnap.data());
-                    } else {
-                        console.warn("User doc not found!");
-                    }
-                });
-
-                const q = query(collection(db, usersCollectionPath));
-                memberListUnsubscribe = onSnapshot(q, (querySnapshot) => {
-                    const members = [];
-                    querySnapshot.forEach((doc) => {
-                        members.push(doc.data());
+                if (user) {
+                    setUser(user);
+                    
+                    const userDocRef = doc(db, usersCollectionPath, user.uid);
+                    userDocUnsubscribe = onSnapshot(userDocRef, (docSnap) => {
+                        if (docSnap.exists()) {
+                            setUserData(docSnap.data());
+                        } else {
+                            // This case is normal for a split second
+                            // while the doc is being created above.
+                            console.warn("Waiting for user doc to be created...");
+                            setUserData(null);
+                        }
                     });
-                    setAllUsers(members);
-                }, (error) => {
-                    console.error("Error listening to member list:", error);
-                });
 
-            } else {
-                setUser(null);
-                setUserData(null);
-                setAllUsers([]);
-            }
-            
-            if (!isAuthReady) setIsAuthReady(true);
-        });
+                    const q = query(collection(db, usersCollectionPath));
+                    memberListUnsubscribe = onSnapshot(q, (querySnapshot) => {
+                        const members = [];
+                        querySnapshot.forEach((doc) => {
+                            members.push(doc.data());
+                        });
+                        setAllUsers(members);
+                    }, (error) => {
+                        console.error("Error listening to member list:", error);
+                    });
 
-        return () => {
-            authUnsubscribe();
-            if (userDocUnsubscribe) userDocUnsubscribe();
-            if (memberListUnsubscribe) memberListUnsubscribe();
-        };
-    }, [isAuthReady]);
+                } else {
+                    setUser(null);
+                    setUserData(null);
+                    setAllUsers([]);
+                }
+                
+                // We are ready to show the app
+                setIsAuthReady(true);
+            });
 
-    const handleRegister = async (displayName, email, password) => {
-        // (Function copied from src/App.jsx)
-        if (displayName.length < 3) {
-            setAuthError("Display Name must be at least 3 characters.");
-            return;
-        }
+            return () => {
+                authUnsubscribe();
+                if (userDocUnsubscribe) userDocUnsubscribe();
+                if (memberListUnsubscribe) memberListUnsubscribe();
+            };
+        })(); // We wrapped the effect in an async IIFE
+
+    }, []); // Empty array ensures this runs only once on mount
+
+    const handleRegister = async (email, password) => {
         setAuthError("");
         try {
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -109,7 +131,8 @@ export default function useAuth() {
             const userDocRef = doc(db, usersCollectionPath, user.uid);
             await setDoc(userDocRef, {
                 userId: user.uid,
-                displayName: displayName,
+                email: user.email,
+                profileComplete: false, 
                 score: 0,
                 currentLevel: 1
             });
@@ -120,7 +143,6 @@ export default function useAuth() {
     };
 
     const handleLogin = async (email, password) => {
-        // (Function copied from src/App.jsx)
         setAuthError("");
         try {
             await signInWithEmailAndPassword(auth, email, password);
@@ -130,29 +152,14 @@ export default function useAuth() {
         }
     };
 
-    // --- NEW GOOGLE SIGN-IN FUNCTION ---
+    // --- UPDATED GOOGLE SIGN-IN FUNCTION ---
     const handleGoogleSignIn = async () => {
         setAuthError("");
         const provider = new GoogleAuthProvider();
         try {
-            const result = await signInWithPopup(auth, provider);
-            const user = result.user;
-
-            // Check if user doc exists, create if not
-            const userDocRef = doc(db, usersCollectionPath, user.uid);
-            const docSnap = await getDoc(userDocRef);
-
-            if (!docSnap.exists()) {
-                // This is a new user
-                await setDoc(userDocRef, {
-                    userId: user.uid,
-                    displayName: user.displayName || 'Google User',
-                    score: 0,
-                    currentLevel: 1 // Start at level 1
-                });
-            }
-            // If doc exists, onAuthStateChanged listener will handle it
-            
+            // This function now just *starts* the redirect.
+            // The logic above in useEffect() will handle the result.
+            await signInWithRedirect(auth, provider);
         } catch (error) {
             console.error("Google Sign-In Error:", error);
             setAuthError(error.message);
@@ -160,16 +167,36 @@ export default function useAuth() {
     };
 
     const handleLogout = async () => {
-        // (Function copied from src/App.jsx)
         try {
             await signOut(auth);
         } catch (error) {
             console.error("Logout Error:", error);
         }
     };
+
+    const handleProfileCreate = async (profileData) => {
+        if (!user) return "No user is logged in.";
+        if (!profileData.displayName || profileData.displayName.length < 3) {
+            return "Display Name must be at least 3 characters.";
+        }
+        
+        try {
+            const userDocRef = doc(db, usersCollectionPath, user.uid);
+            await updateDoc(userDocRef, {
+                displayName: profileData.displayName,
+                school: profileData.school || '',
+                grade: profileData.grade || '',
+                profileComplete: true 
+            });
+            return null; 
+        } catch (error)
+        {
+            console.error("Error creating profile:", error);
+            return "Failed to save profile. Please try again.";
+        }
+    };
     
     const handleProfileUpdate = async (newDisplayName) => {
-        // (Function copied from src/App.jsx)
         if (!user) return;
         if (newDisplayName.length < 3) {
             return "Name must be at least 3 characters.";
@@ -180,7 +207,7 @@ export default function useAuth() {
             await updateDoc(userDocRef, {
                 displayName: newDisplayName
             });
-            return null; // Success
+            return null;
         } catch (error)
         {
             console.error("Error updating profile:", error);
@@ -189,7 +216,6 @@ export default function useAuth() {
     };
     
     const updateUserStatsInFirestore = async (dataToUpdate) => {
-        // (Function copied from src/App.jsx)
         if (!user) return;
         const userDocRef = doc(db, usersCollectionPath, user.uid);
         try {
@@ -210,6 +236,7 @@ export default function useAuth() {
         handleLogout,
         handleProfileUpdate,
         updateUserStatsInFirestore,
-        handleGoogleSignIn // <-- Return new function
+        handleProfileCreate,
+        handleGoogleSignIn 
     };
 }

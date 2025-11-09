@@ -4,6 +4,7 @@ import useAuth from './hooks/useAuth';
 // Import your new screen components
 import AuthScreen from './components/AuthScreen';
 import GameScreen from './components/GameScreen';
+import CreateProfileScreen from './components/CreateProfileScreen'; // <-- IMPORT NEW SCREEN
 
 // --- 4. MAIN APP COMPONENT ---
 export default function App() {
@@ -19,7 +20,7 @@ export default function App() {
         handleLogout,
         handleProfileUpdate,
         updateUserStatsInFirestore,
-        handleGoogleSignIn // <-- Get the new Google handler
+        handleProfileCreate // <-- GET NEW FUNCTION
     } = useAuth();
 
     // Loading State
@@ -32,26 +33,49 @@ export default function App() {
     }
     
     // Logged Out State
-    if (!user || !userData) {
+    if (!user) {
         return (
             <AuthScreen 
                 onRegister={handleRegister} 
                 onLogin={handleLogin} 
-                onGoogleSignIn={handleGoogleSignIn} // <-- Pass it to the component
+                // onGoogleSignIn prop removed
                 error={authError} 
             />
         );
     }
 
-    // Logged In State
+    // --- NEW LOGIC ---
+    // User is logged in, but userData might be loading or incomplete
+    if (userData) {
+        // If profile is NOT complete, show CreateProfileScreen
+        if (userData.profileComplete === false) {
+            return (
+                <CreateProfileScreen 
+                    user={user} 
+                    onProfileCreate={handleProfileCreate} 
+                />
+            );
+        }
+        
+        // If profile IS complete, show GameScreen
+        if (userData.profileComplete === true) {
+            return (
+                <GameScreen 
+                    user={user}
+                    userData={userData}
+                    allUsers={allUsers}
+                    onLogout={handleLogout}
+                    onProfileUpdate={handleProfileUpdate}
+                    onUpdateStats={updateUserStatsInFirestore}
+                />
+            );
+        }
+    }
+
+    // Fallback: User exists, but userData is still null (loading)
     return (
-        <GameScreen 
-            user={user}
-            userData={userData}
-            allUsers={allUsers}
-            onLogout={handleLogout}
-            onProfileUpdate={handleProfileUpdate}
-            onUpdateStats={updateUserStatsInFirestore}
-        />
+        <div className="flex items-center justify-center min-h-screen">
+            <h1 className="font-display text-5xl text-white">Loading Profile...</h1>
+        </div>
     );
 }

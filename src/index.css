@@ -2,7 +2,8 @@
 
 /* Add these styles below the @import */
 body {
-  @apply bg-gradient-to-br from-teal-400 to-blue-600 h-screen font-sans;
+  /* UPDATED: New gradient with your color */
+  @apply bg-gradient-to-br from-[#0ACBDB] to-[#0897a1] h-screen font-sans;
 }
 
 #root {
@@ -16,7 +17,7 @@ body {
 
 /* Input Field Style */
 .input-field {
-  @apply block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm;
+  @apply block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#0ACBDB] focus:border-[#0ACBDB] sm:text-sm;
 }
 
 /* Base Button Styles */
@@ -24,12 +25,14 @@ body {
   @apply inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-base font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors duration-150;
 }
 
+/* UPDATED: New colors */
 .btn-primary {
-  @apply text-white bg-teal-600 hover:bg-teal-700 focus:ring-teal-500;
+  @apply text-white bg-[#0ACBDB] hover:bg-[#0aa3b0] focus:ring-[#0ACBDB];
 }
 
+/* UPDATED: New colors */
 .btn-secondary {
-  @apply text-teal-700 bg-teal-100 hover:bg-teal-200 focus:ring-teal-500;
+  @apply text-[#077F8A] bg-[#e0fcfd] hover:bg-[#b0f5fa] focus:ring-[#0ACBDB];
 }
 
 .btn-danger {
@@ -55,8 +58,10 @@ body {
 .auth-tab {
    @apply w-1/2 py-3 text-center text-gray-600 font-medium border-b-2 border-transparent hover:border-gray-300 hover:text-gray-800 transition-colors duration-150;
 }
+
+/* UPDATED: New color */
 .auth-tab-active {
-   @apply border-teal-500 text-teal-600;
+   @apply border-[#0ACBDB] text-[#0ACBDB];
 }
 .auth-tab-inactive {
   /* No specific styles needed, uses base .auth-tab styles */
@@ -76,4 +81,9 @@ body {
 /* Custom Font (Optional but nice) */
 .font-display {
   font-family: 'Poppins', sans-serif; /* Example: Add Poppins font via index.html if you like */
+}
+
+/* NEW: Custom text color */
+.text-primary {
+  @apply text-[#0ACBDB];
 }
