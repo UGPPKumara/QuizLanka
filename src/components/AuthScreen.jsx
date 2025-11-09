@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Logo from '../assets/Logo.png';
 
 /**
  * AuthScreen: Login and Register Forms
@@ -20,9 +21,9 @@ const AuthScreen = ({ onRegister, onLogin, onGoogleSignIn, error }) => {
     };
 
     return (
-        <div className="w-full max-w-md mx-auto">
-            <div className="card text-center">
-                <h1 className="font-display text-5xl text-teal-600 mb-6">Lanka Genius Quiz</h1>
+        <div className="w-full max-w-md mx-auto flex h-screen items-center">
+            <div className="card text-center dirextion-center w-4xl p-8">
+                <img src={Logo} alt="Lanka Genius Quiz Logo" className="w-auto h-24 mx-auto mb-4" />
                 
                 <div className="flex mb-4 border-b border-gray-200">
                     <button 
