@@ -4,7 +4,7 @@ import useAuth from './hooks/useAuth';
 // Import your new screen components
 import AuthScreen from './components/AuthScreen';
 import GameScreen from './components/GameScreen';
-import CreateProfileScreen from './components/CreateProfileScreen'; // <-- IMPORT NEW SCREEN
+import CreateProfileScreen from './components/CreateProfileScreen'; 
 
 // --- 4. MAIN APP COMPONENT ---
 export default function App() {
@@ -20,10 +20,12 @@ export default function App() {
         handleLogout,
         handleProfileUpdate,
         updateUserStatsInFirestore,
-        handleProfileCreate // <-- GET NEW FUNCTION
+        handleProfileCreate,
+        handleGoogleSignIn 
     } = useAuth();
 
-    // Loading State
+    // --- UPDATED LOGIC ---
+    // We only show one loading screen until the hook tells us it's ready
     if (!isAuthReady) {
         return (
 <div className="flex items-center justify-center min-h-screen">
@@ -32,50 +34,50 @@ export default function App() {
         );
     }
     
-    // Logged Out State
+    // When isAuthReady is true, we check the user
+    // 1. No user exists
     if (!user) {
         return (
             <AuthScreen 
                 onRegister={handleRegister} 
                 onLogin={handleLogin} 
-                // onGoogleSignIn prop removed
+                onGoogleSignIn={handleGoogleSignIn}
                 error={authError} 
             />
         );
     }
 
-    // --- NEW LOGIC ---
-    // User is logged in, but userData might be loading or incomplete
-    if (userData) {
-        // If profile is NOT complete, show CreateProfileScreen
-        if (userData.profileComplete === false) {
-            return (
-                <CreateProfileScreen 
-                    user={user} 
-                    onProfileCreate={handleProfileCreate} 
-                />
-            );
-        }
-        
-        // If profile IS complete, show GameScreen
-        if (userData.profileComplete === true) {
-            return (
-                <GameScreen 
-                    user={user}
-                    userData={userData}
-                    allUsers={allUsers}
-                    onLogout={handleLogout}
-                    onProfileUpdate={handleProfileUpdate}
-                    onUpdateStats={updateUserStatsInFirestore}
-                />
-            );
-        }
+    // 2. User exists, but profile is NOT complete
+    // We check userData (which we know is loaded)
+    if (user && userData && userData.profileComplete === false) {
+        return (
+            <CreateProfileScreen 
+                user={user} 
+                onProfileCreate={handleProfileCreate} 
+            />
+        );
+    }
+    
+    // 3. User exists AND profile IS complete
+    if (user && userData && userData.profileComplete === true) {
+        return (
+            <GameScreen 
+                user={user}
+                userData={userData}
+                allUsers={allUsers}
+                onLogout={handleLogout}
+                onProfileUpdate={handleProfileUpdate}
+                onUpdateStats={updateUserStatsInFirestore}
+            />
+        );
     }
 
-    // Fallback: User exists, but userData is still null (loading)
+    // Fallback (e.g., user exists but doc error)
+    // This should rarely, if ever, be seen
     return (
         <div className="flex items-center justify-center min-h-screen">
-            <h1 className="font-display text-5xl text-white">Loading Profile...</h1>
+            <h1 className="font-display text-5xl text-white">An error occurred.</h1>
+            <p className="text-white">{authError}</p>
         </div>
     );
 }

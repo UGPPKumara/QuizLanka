@@ -22,8 +22,8 @@ import {
     getDoc,
     doc,
     setDoc,
-    signInWithRedirect, // <-- NEW
-    getRedirectResult   // <-- NEW
+    signInWithRedirect, 
+    getRedirectResult   
 } from '../firebase/config';
 
 
@@ -32,7 +32,7 @@ export default function useAuth() {
     const [user, setUser] = useState(null);
     const [userData, setUserData] = useState(null);
     const [allUsers, setAllUsers] = useState([]);
-    const [isAuthReady, setIsAuthReady] = useState(false);
+    const [isAuthReady, setIsAuthReady] = useState(false); // <-- Starts as false
     const [authError, setAuthError] = useState("");
 
     // This useEffect hook runs when the app first loads
@@ -40,58 +40,53 @@ export default function useAuth() {
         let userDocUnsubscribe = null;
         let memberListUnsubscribe = null;
 
-        // --- NEW: Handle the Google Redirect ---
-        // We do this *before* setting the main listener
-        // This 'try/catch' checks if the user is coming BACK from Google
         (async () => {
             try {
+                // First, check if we are coming back from a Google redirect
                 const result = await getRedirectResult(auth);
                 if (result) {
                     // This means the user just logged in via redirect
                     const user = result.user;
-                    // Check if they are a new user
                     const userDocRef = doc(db, usersCollectionPath, user.uid);
                     const docSnap = await getDoc(userDocRef);
 
                     if (!docSnap.exists()) {
-                        // This is a new user, create their doc
                         await setDoc(userDocRef, {
                             userId: user.uid,
                             email: user.email,
-                            profileComplete: false, // Send to profile creation
+                            profileComplete: false, 
                             score: 0,
                             currentLevel: 1
                         });
                     }
-                    // If they exist, the onAuthStateChanged listener below will handle it
                 }
             } catch (error) {
                 console.error("Google Redirect Error:", error);
                 setAuthError(error.message);
+                setIsAuthReady(true); // Even if redirect fails, we are "ready"
             }
-            // --- End of new redirect logic ---
-
-
-            // This is the main listener for auth changes
+            
+            // --- This is the main listener ---
             const authUnsubscribe = onAuthStateChanged(auth, (user) => {
                 if (userDocUnsubscribe) userDocUnsubscribe();
                 if (memberListUnsubscribe) memberListUnsubscribe();
                 
                 if (user) {
+                    // User is logged in, now get their DB doc
                     setUser(user);
-                    
                     const userDocRef = doc(db, usersCollectionPath, user.uid);
+                    
                     userDocUnsubscribe = onSnapshot(userDocRef, (docSnap) => {
                         if (docSnap.exists()) {
                             setUserData(docSnap.data());
                         } else {
-                            // This case is normal for a split second
-                            // while the doc is being created above.
-                            console.warn("Waiting for user doc to be created...");
-                            setUserData(null);
+                            // This can happen if doc creation is slow
+                            setUserData(null); 
                         }
+                        setIsAuthReady(true); // <-- NOW we are ready to show the app
                     });
 
+                    // Also get the member list
                     const q = query(collection(db, usersCollectionPath));
                     memberListUnsubscribe = onSnapshot(q, (querySnapshot) => {
                         const members = [];
@@ -104,13 +99,12 @@ export default function useAuth() {
                     });
 
                 } else {
+                    // No user is logged in
                     setUser(null);
                     setUserData(null);
                     setAllUsers([]);
+                    setIsAuthReady(true); // <-- We are also "ready" if there's no user
                 }
-                
-                // We are ready to show the app
-                setIsAuthReady(true);
             });
 
             return () => {
@@ -118,10 +112,11 @@ export default function useAuth() {
                 if (userDocUnsubscribe) userDocUnsubscribe();
                 if (memberListUnsubscribe) memberListUnsubscribe();
             };
-        })(); // We wrapped the effect in an async IIFE
+        })(); 
 
-    }, []); // Empty array ensures this runs only once on mount
+    }, []); 
 
+    // ... (all other functions: handleRegister, handleLogin, etc. are correct) ...
     const handleRegister = async (email, password) => {
         setAuthError("");
         try {
@@ -152,13 +147,10 @@ export default function useAuth() {
         }
     };
 
-    // --- UPDATED GOOGLE SIGN-IN FUNCTION ---
     const handleGoogleSignIn = async () => {
         setAuthError("");
         const provider = new GoogleAuthProvider();
         try {
-            // This function now just *starts* the redirect.
-            // The logic above in useEffect() will handle the result.
             await signInWithRedirect(auth, provider);
         } catch (error) {
             console.error("Google Sign-In Error:", error);
@@ -224,6 +216,7 @@ export default function useAuth() {
             console.error("Error updating user stats:", error);
         }
     };
+
 
     return {
         user,
